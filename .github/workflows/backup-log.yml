@@ -1,0 +1,17 @@
+name: Auto Backup Log
+
+on:
+  push:
+    branches: ["**"]
+
+jobs:
+  log-backup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Log backup info
+        run: |
+          echo "✅ Backup received: $(date)"
+          echo "📁 Latest commit: $(git log --oneline -1)"
+          echo "📊 Files changed: $(git diff --name-only HEAD~1 HEAD 2>/dev/null | wc -l || echo 0)"
+
