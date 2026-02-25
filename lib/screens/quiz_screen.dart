@@ -57,15 +57,13 @@ class QuizScreen extends ConsumerWidget {
 
     final question = quizState.currentQuestion;
 
-    return SafeArea(
-      top: true,
-      bottom: false,
-      child: Scaffold(
+    return Scaffold(
         appBar: AppBar(
           title: Text('問題 ${quizState.currentIndex + 1} / ${quizState.questions.length}'),
         ),
         body: Column(
           children: [
+            const AdBanner(),
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(16.0),
@@ -76,46 +74,80 @@ class QuizScreen extends ConsumerWidget {
                       question.question,
                       style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
-                    const SizedBox(height: 20),
-                    ...List.generate(question.options.length, (index) {
-                      final isSelected = quizState.selectedOptionIndex == index;
-                      final isCorrect = index == question.correctIndex;
-                      final isAnswered = quizState.isAnswered;
-  
-                      Color? buttonColor;
-                      if (isAnswered) {
-                        if (isSelected) {
-                          buttonColor = isCorrect ? Colors.green.shade100 : Colors.red.shade100;
-                        } else if (isCorrect && isSelected) {
-                          buttonColor = Colors.green.shade100;
-                        }
-                      }
-  
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                        child: OutlinedButton(
-                          onPressed: isAnswered ? null : () => quizNotifier.selectOption(index),
-                          style: OutlinedButton.styleFrom(
-                            backgroundColor: buttonColor,
+                    if (question.imagePath != null) ...[
+                      const SizedBox(height: 16),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: const EdgeInsets.all(8),
+                        child: Image.asset(
+                          question.imagePath!,
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) => Container(
                             padding: const EdgeInsets.all(16),
-                            alignment: Alignment.centerLeft,
-                            side: BorderSide(
-                              color: isAnswered && (isSelected || (isCorrect && isAnswered)) 
-                                  ? (isCorrect ? Colors.green : Colors.red) 
-                                  : Colors.grey,
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.red.shade200),
+                              borderRadius: BorderRadius.circular(8),
                             ),
-                          ),
-                          child: Text(
-                            question.options[index],
-                            style: TextStyle(
-                              color: isAnswered 
-                                  ? (isSelected || isCorrect ? Colors.black87 : Theme.of(context).colorScheme.onSurface) 
-                                  : Theme.of(context).colorScheme.onSurface,
-                            ),
+                            child: const Text('画像が読み込めませんでした。(アセットを確認してください)'),
                           ),
                         ),
-                      );
-                    }),
+                      ),
+                    ],
+                    const SizedBox(height: 20),
+                    Builder(
+                      builder: (context) {
+                        final options = question.options.isNotEmpty 
+                            ? question.options 
+                            : ['適切', '不適切'];
+                            
+                        return Column(
+                          children: List.generate(options.length, (index) {
+                            final isSelected = quizState.selectedOptionIndex == index;
+                            final isCorrect = index == question.correctIndex;
+                            final isAnswered = quizState.isAnswered;
+        
+                            Color? buttonColor;
+                            if (isAnswered) {
+                              if (isSelected) {
+                                buttonColor = isCorrect ? Colors.green.shade100 : Colors.red.shade100;
+                              } else if (isCorrect && isSelected) {
+                                buttonColor = Colors.green.shade100;
+                              }
+                            }
+        
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8.0),
+                              child: OutlinedButton(
+                                onPressed: isAnswered ? null : () => quizNotifier.selectOption(index),
+                                style: OutlinedButton.styleFrom(
+                                  backgroundColor: buttonColor,
+                                  padding: const EdgeInsets.all(16),
+                                  alignment: Alignment.centerLeft,
+                                  side: BorderSide(
+                                    color: isAnswered && (isSelected || (isCorrect && isAnswered)) 
+                                        ? (isCorrect ? Colors.green : Colors.red) 
+                                        : Colors.grey,
+                                  ),
+                                ),
+                                child: Text(
+                                  '${['ア', 'イ', 'ウ', 'エ'][index < 4 ? index : index % 4]}. ${options[index]}',
+                                  style: TextStyle(
+                                    color: isAnswered
+                                        ? (isCorrect
+                                            ? Colors.green
+                                            : (isSelected ? Colors.red : Theme.of(context).colorScheme.onSurface))
+                                        : Theme.of(context).colorScheme.onSurface,
+                                  ),
+                                ),
+                              ),
+                            );
+                          }),
+                        );
+                      }
+                    ),
                     if (quizState.isAnswered) ...[
                       const SizedBox(height: 24),
                       Text(
@@ -186,10 +218,8 @@ class QuizScreen extends ConsumerWidget {
                 ),
               ),
             ),
-            const AdBanner(),
           ],
         ),
-      ),
     );
   }
 

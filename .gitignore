@@ -43,6 +43,10 @@ app.*.map.json
 /android/app/release
 /build/
 
+# Android build output (large files, exceeds GitHub 100MB limit)
+*.aab
+*.apk
+
 # Sensitive Files (DO NOT COMMIT)
 *.jks
 *.keystore

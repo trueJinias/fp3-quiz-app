@@ -76,12 +76,14 @@ class PaymentService {
        return;
     }
     
-    if (!_products.any((p) => p.id == _coffeeProductId)) {
-       onPurchaseError?.call('商品情報が見つかりません。\nGoogle Play Consoleで "$_coffeeProductId" を作成してください。');
+    final ProductDetails? product = _products.where((p) => p.id == _coffeeProductId).firstOrNull;
+
+    if (product == null) {
+       onPurchaseError?.call('商品情報が見つかりません。\nGoogle Play Consoleで "$_coffeeProductId" が有効になっているか確認してください。');
        return;
     }
 
-    final purchaseParam = PurchaseParam(productDetails: _products.firstWhere((p) => p.id == _coffeeProductId));
+    final purchaseParam = PurchaseParam(productDetails: product);
     
     try {
       await _inAppPurchase.buyConsumable(purchaseParam: purchaseParam);

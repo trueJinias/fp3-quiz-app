@@ -61,6 +61,17 @@ class ReviewService {
     
     int interval = itemData['interval'] as int? ?? 0;
     int step = itemData['step'] as int? ?? 0;
+
+    // 初回学習かどうかを判定（step=0かつinterval=0の場合）
+    final bool isFirstReview = (step == 0 && interval == 0);
+
+    // Support for legacy data: if card is already learned (interval > 0) but step is 0,
+    // it means it was learned in an older version or previous buggy state.
+    // Treat it as at least step 1 so the next review uses n=1.
+    if (step == 0 && interval > 0) {
+      step = 1;
+    }
+    
     double ease = itemData['ease'] as double? ?? 2.5;
     
     int delayMinutes = 0;
@@ -71,39 +82,35 @@ class ReviewService {
     // 3 (Good): "Tomorrow". Scheduler: 1 day.
     // 4 (Easy): 3 days.
 
-    if (rating == 1) { // Again
+    ease = 2.5; // E = 250% fixed as requested
+
+    if (rating == 1) { // Again (Incorrect)
       interval = 0;
       step = 0;
-      delayMinutes = 1;
-      ease = (ease - 0.2).clamp(1.3, 5.0);
-    } else if (rating == 2) { // Hard
-       interval = 0; 
-       step = 0;
-       delayMinutes = 300; // 5 hours
-       ease = (ease - 0.15).clamp(1.3, 5.0);
-    } else if (rating == 3) { // Good
-       if (interval == 0) {
-         interval = 1;
-         delayMinutes = 1440; // 1 day
-         step = 0;
-       } else {
-         interval = (interval * ease).round();
-         if (interval < 1) interval = 1;
-         delayMinutes = interval * 1440;
-       }
+      delayMinutes = 1; // Review in 1 minute
+    } else if (rating == 2) { // Hard (Today)
+      delayMinutes = 60; // Review in 1 hour
+    } else if (rating == 3) { // Good (Correct)
+      if (isFirstReview) {
+        // 初回学習時: 1日
+        interval = 1;
+      } else {
+        // 復習時: n × 1 × 2.5 (n = step + 1)
+        interval = ((step + 1) * 1 * 2.5).round();
+      }
+      step++;
+      delayMinutes = interval * 1440;
     } else if (rating == 4) { // Easy
-       if (interval == 0) {
-         interval = 3;
-         delayMinutes = 3 * 1440;
-       } else {
-         interval = (interval * ease * 1.5).round();
-         if (interval <= 1) interval = 3;
-         delayMinutes = interval * 1440;
-         ease += 0.15;
-       }
+      if (isFirstReview) {
+        // 初回学習時: 3日
+        interval = 3;
+      } else {
+        // 復習時: n × 3 × 2.5 (n = step + 1)
+        interval = ((step + 1) * 3 * 2.5).round();
+      }
+      step++;
+      delayMinutes = interval * 1440;
     }
-    
-    if (ease > 5.0) ease = 5.0;
     
     int nextReview = DateTime.now().add(Duration(minutes: delayMinutes)).millisecondsSinceEpoch;
     
@@ -143,12 +150,13 @@ class ReviewService {
 
   Future<List<int>> getDueQuestionIds() async {
     final data = await _loadData();
-    final now = DateTime.now().millisecondsSinceEpoch;
+    final now = DateTime.now();
+    final endOfToday = DateTime(now.year, now.month, now.day, 23, 59, 59).millisecondsSinceEpoch;
     final List<int> dueIds = [];
 
     data.forEach((key, value) {
       final nextReview = value['nextReview'] as int;
-      if (nextReview <= now) {
+      if (nextReview <= endOfToday) {
         dueIds.add(int.parse(key));
       }
     });
@@ -165,10 +173,11 @@ class ReviewService {
       final data = await _loadData();
       int learned = data.length;
       int due = 0;
-      final now = DateTime.now().millisecondsSinceEpoch;
+      final now = DateTime.now();
+      final endOfToday = DateTime(now.year, now.month, now.day, 23, 59, 59).millisecondsSinceEpoch;
       
       data.forEach((k, v) {
-          if ((v['nextReview'] as int) <= now) due++;
+          if ((v['nextReview'] as int) <= endOfToday) due++;
       });
       
       return {

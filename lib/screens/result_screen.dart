@@ -13,10 +13,7 @@ class ResultScreen extends ConsumerWidget {
     final score = quizState.score;
     final percentage = totalQuestions > 0 ? (score / totalQuestions * 100).toStringAsFixed(1) : '0.0';
 
-    return SafeArea(
-      top: true,
-      bottom: false,
-      child: Scaffold(
+    return Scaffold(
         appBar: AppBar(
           title: const Text('結果発表'),
           centerTitle: true,
@@ -57,7 +54,6 @@ class ResultScreen extends ConsumerWidget {
             const AdBanner(),
           ],
         ),
-      ),
     );
   }
 }

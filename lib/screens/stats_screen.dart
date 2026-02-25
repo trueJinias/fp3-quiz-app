@@ -38,7 +38,7 @@ class StatsScreen extends ConsumerWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: List.generate(7, (index) {
                         final count = futureReviews[index];
-                        final height = (count / 20 * 150).clamp(10.0, 150.0);
+                        final height = count == 0 ? 0.0 : (count / 20 * 150).clamp(10.0, 150.0);
                         return Column(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [

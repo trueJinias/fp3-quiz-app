@@ -197,12 +197,24 @@ class QuizNotifier extends StateNotifier<QuizState> {
     final question = state.currentQuestion;
     final isCorrect = index == question.correctIndex;
 
-    // Custom labels as requested
+    // Dynamically calculate labels based on the actual algorithm in ReviewService
+    final calc1 = await _reviewService.calculateNextReview(question.id, 1);
+    final calc2 = await _reviewService.calculateNextReview(question.id, 2);
+    final calc3 = await _reviewService.calculateNextReview(question.id, 3);
+    final calc4 = await _reviewService.calculateNextReview(question.id, 4);
+
+    String labelForCalc(Map<String, dynamic> calc) {
+      int interval = calc['interval'] as int;
+      if (interval == 0) return '今日';
+      if (interval == 1) return '明日';
+      return '$interval日後';
+    }
+
     final labels = <int, String>{
-      1: '今回',   // Again
-      2: '今日',   // Hard
-      3: '明日',   // Good
-      4: '3日後',  // Easy
+      1: '今回',    // Again: always show '今回'
+      2: '今日',    // Hard: always show '今日'
+      3: labelForCalc(calc3),
+      4: labelForCalc(calc4),
     };
 
     if (mounted) {

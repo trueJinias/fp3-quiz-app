@@ -6,9 +6,7 @@ class AdHelper {
   
   // ANDROID IDs
   static String get androidBannerAdUnitId {
-    // Return Test ID by default for template
     return 'ca-app-pub-3940256099942544/6300978111'; 
-    // return 'YOUR_ANDROID_BANNER_AD_UNIT_ID'; 
   }
 
   // iOS IDs

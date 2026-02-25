@@ -23,10 +23,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      top: true,
-      bottom: false,
-      child: Scaffold(
+    return Scaffold(
         body: IndexedStack(
           index: _currentIndex,
           children: _screens,
@@ -66,7 +63,6 @@ class _MainScreenState extends ConsumerState<MainScreen> {
             ),
           ],
         ),
-      ),
     );
   }
 }

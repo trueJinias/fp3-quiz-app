@@ -1,4 +1,4 @@
-package com.example.it_passport_app
+package jp.jinias.fp3quiz
 
 import io.flutter.embedding.android.FlutterActivity
 
