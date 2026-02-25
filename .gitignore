@@ -46,6 +46,7 @@ app.*.map.json
 # Android build output (large files, exceeds GitHub 100MB limit)
 *.aab
 *.apk
+temp-aab/
 
 # Sensitive Files (DO NOT COMMIT)
 *.jks
