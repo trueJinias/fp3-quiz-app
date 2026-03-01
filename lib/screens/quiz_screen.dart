@@ -71,7 +71,7 @@ class QuizScreen extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      question.question,
+                      _preprocessText(question.question),
                       style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     if (question.imagePath != null) ...[
@@ -249,6 +249,13 @@ class QuizScreen extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+
+  String _preprocessText(String text) {
+    return text.replaceAllMapped(
+      RegExp(r'([^\n])・'),
+      (match) => '${match.group(1)}\n\n・',
     );
   }
 }

@@ -173,16 +173,26 @@ class ReviewService {
       final data = await _loadData();
       int learned = data.length;
       int due = 0;
+      int correct = 0; // interval > 0 = 正解して卒業済み
+      const int totalQuestions = 1020;
       final now = DateTime.now();
       final endOfToday = DateTime(now.year, now.month, now.day, 23, 59, 59).millisecondsSinceEpoch;
-      
+
       data.forEach((k, v) {
           if ((v['nextReview'] as int) <= endOfToday) due++;
+          if ((v['interval'] as int? ?? 0) > 0) correct++;
       });
-      
+
+      final double clearRate = totalQuestions > 0
+          ? (correct / totalQuestions * 100)
+          : 0.0;
+
       return {
           'learned': learned,
           'due': due,
+          'correct': correct,
+          'total': totalQuestions,
+          'clearRate': clearRate,
       };
   }
 

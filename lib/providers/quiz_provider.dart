@@ -100,8 +100,13 @@ class QuizNotifier extends StateNotifier<QuizState> {
       final remaining = limit - alreadyDone;
       
       if (remaining <= 0) {
-        await NotificationService().completeForToday();
-        
+        // 通知をリスケジュール（失敗してもクイズ画面には影響しない）
+        try {
+          await NotificationService().completeForToday();
+        } catch (e) {
+          debugPrint('Notification error (non-critical): $e');
+        }
+
         if (mounted) {
           state = QuizState(
             questions: [],

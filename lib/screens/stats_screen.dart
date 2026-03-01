@@ -19,13 +19,20 @@ class StatsScreen extends ConsumerWidget {
         data: (stats) {
           final learned = stats['learned'];
           final due = stats['due'];
+          final correct = stats['correct'] ?? 0;
+          final total = stats['total'] ?? 0;
+          final clearRate = (stats['clearRate'] as double? ?? 0.0);
 
           return futureAsync.when(
             data: (futureReviews) {
               return ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
-                  _buildStatCard(context, '学習済みカード', '$learned 枚', Colors.blue), // '/ 1000' removed for template safety
+                  _buildStatCard(context, '学習済みカード', '$learned / $total', Colors.blue),
+                  const SizedBox(height: 10),
+                  _buildStatCard(context, '正解済みカード', '$correct / $total', Colors.green),
+                  const SizedBox(height: 10),
+                  _buildStatCard(context, 'クリア率', '${clearRate.toStringAsFixed(1)}%', Colors.purple),
                   const SizedBox(height: 10),
                   _buildStatCard(context, '復習待ち', '$due 枚', Colors.orange),
                   const SizedBox(height: 30),

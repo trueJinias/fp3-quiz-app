@@ -30,6 +30,25 @@ class _TutorialScreenState extends State<TutorialScreen> {
     }
   }
 
+  Widget _buildDemoButton(String timeLabel, String label, Color color) {
+    return Column(
+      children: [
+        Text(timeLabel, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 4),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            // ignore: deprecated_member_use
+            color: color.withOpacity(0.15),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: color),
+          ),
+          child: Text(label, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 14)),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return IntroductionScreen(
@@ -41,12 +60,85 @@ class _TutorialScreenState extends State<TutorialScreen> {
       safeAreaList: [true, true, true, true],
       pages: [
         PageViewModel(
-          title: "学習アプリへようこそ", // Generic Title
+          title: "学習アプリへようこそ",
           body: "忘却曲線に基づいた効率的な学習で、\n効率よく記憶を定着させましょう。",
           image: const Icon(Icons.school, size: 100.0, color: Colors.blue),
           decoration: const PageDecoration(
             titleTextStyle: TextStyle(fontSize: 28.0, fontWeight: FontWeight.bold),
             bodyTextStyle: TextStyle(fontSize: 18.0),
+          ),
+        ),
+        PageViewModel(
+          title: "評価ボタンの使い方",
+          image: const Icon(Icons.touch_app, size: 80.0, color: Colors.purple),
+          bodyWidget: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                "回答後に評価ボタンが表示されます。\nボタン上の数字は「次回復習までの日数」です。\n自分の理解度に合ったボタンを押しましょう。",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 14.0, height: 1.6),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                decoration: BoxDecoration(
+                  // ignore: deprecated_member_use
+                  color: Colors.green.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.green),
+                ),
+                child: Column(
+                  children: [
+                    const Text('✅ 正解した場合', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green, fontSize: 13)),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _buildDemoButton('3日後', '正解', Colors.blue),
+                        const SizedBox(width: 20),
+                        _buildDemoButton('7日後', '簡単', Colors.green),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                decoration: BoxDecoration(
+                  // ignore: deprecated_member_use
+                  color: Colors.red.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.red),
+                ),
+                child: Column(
+                  children: [
+                    const Text('❌ 不正解の場合', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red, fontSize: 13)),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _buildDemoButton('このセッション中', 'もう一度', Colors.red),
+                        const SizedBox(width: 20),
+                        _buildDemoButton('1日後', '難しい', Colors.orange),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      '「もう一度」はこのセッション中に再度出題されます',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 11, color: Colors.red),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          decoration: const PageDecoration(
+            titleTextStyle: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
+            contentMargin: EdgeInsets.symmetric(horizontal: 16),
+            bodyPadding: EdgeInsets.only(top: 8),
           ),
         ),
         PageViewModel(
