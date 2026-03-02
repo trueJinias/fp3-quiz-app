@@ -70,7 +70,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
         ),
         PageViewModel(
           title: "評価ボタンの使い方",
-          image: const Icon(Icons.touch_app, size: 80.0, color: Colors.purple),
+          image: const Icon(Icons.touch_app, size: 64.0, color: Colors.purple),
           bodyWidget: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -79,9 +79,9 @@ class _TutorialScreenState extends State<TutorialScreen> {
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 14.0, height: 1.6),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
                   // ignore: deprecated_member_use
                   color: Colors.green.withOpacity(0.1),
@@ -91,7 +91,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
                 child: Column(
                   children: [
                     const Text('✅ 正解した場合', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green, fontSize: 13)),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 6),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -103,9 +103,9 @@ class _TutorialScreenState extends State<TutorialScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 6),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
                   // ignore: deprecated_member_use
                   color: Colors.red.withOpacity(0.1),
@@ -115,7 +115,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
                 child: Column(
                   children: [
                     const Text('❌ 不正解の場合', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red, fontSize: 13)),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 6),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -138,7 +138,8 @@ class _TutorialScreenState extends State<TutorialScreen> {
           decoration: const PageDecoration(
             titleTextStyle: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
             contentMargin: EdgeInsets.symmetric(horizontal: 16),
-            bodyPadding: EdgeInsets.only(top: 8),
+            bodyPadding: EdgeInsets.zero,
+            imagePadding: EdgeInsets.only(top: 8, bottom: 4),
           ),
         ),
         PageViewModel(
