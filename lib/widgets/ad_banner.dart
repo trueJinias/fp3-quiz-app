@@ -13,23 +13,43 @@ class AdBanner extends StatefulWidget {
 class _AdBannerState extends State<AdBanner> {
   BannerAd? _bannerAd;
   bool _isLoaded = false;
+  AdSize? _adSize;
+  bool _loadStarted = false;
 
   @override
-  void initState() {
-    super.initState();
-    if (AdHelper.isSupported) {
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_loadStarted && AdHelper.isSupported) {
+      _loadStarted = true;
       _loadAd();
     }
   }
 
-  void _loadAd() {
+  Future<void> _loadAd() async {
     final adUnitId = AdHelper.bannerAdUnitId;
     if (adUnitId.isEmpty) return;
+
+    AdSize adSize = widget.size;
+    // Use adaptive banner for the default banner to fill screen width
+    if (widget.size == AdSize.banner) {
+      final screenWidth = MediaQuery.of(context).size.width.truncate();
+      final adaptiveSize =
+          await AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(screenWidth);
+      if (adaptiveSize != null && mounted) {
+        adSize = adaptiveSize;
+      }
+    }
+
+    if (!mounted) return;
+
+    setState(() {
+      _adSize = adSize;
+    });
 
     _bannerAd = BannerAd(
       adUnitId: adUnitId,
       request: const AdRequest(),
-      size: widget.size,
+      size: adSize,
       listener: BannerAdListener(
         onAdLoaded: (ad) {
           if (mounted) {
@@ -39,7 +59,7 @@ class _AdBannerState extends State<AdBanner> {
           }
         },
         onAdFailedToLoad: (ad, err) {
-          print('Ad failed to load: $err');
+          debugPrint('Ad failed to load: $err');
           ad.dispose();
         },
       ),
@@ -56,18 +76,18 @@ class _AdBannerState extends State<AdBanner> {
   Widget build(BuildContext context) {
     if (_isLoaded && _bannerAd != null) {
       return SizedBox(
-        width: _bannerAd!.size.width.toDouble(),
-        height: _bannerAd!.size.height.toDouble(),
+        width: double.infinity,
+        height: (_adSize ?? _bannerAd!.size).height.toDouble(),
         child: AdWidget(ad: _bannerAd!),
       );
     }
-    
+
     return Container(
-       height: widget.size.height.toDouble(),
-       width: double.infinity,
-       color: Colors.grey[200],
-       alignment: Alignment.center,
-       child: const Text('Ad Space (Loading/Dev)', style: TextStyle(fontSize: 10, color: Colors.grey)),
+      height: (_adSize ?? widget.size).height.toDouble(),
+      width: double.infinity,
+      color: Colors.grey[200],
+      alignment: Alignment.center,
+      child: const Text('Ad Space (Loading/Dev)', style: TextStyle(fontSize: 10, color: Colors.grey)),
     );
   }
 }
