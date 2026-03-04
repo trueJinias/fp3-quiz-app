@@ -6,6 +6,7 @@ import '../providers/quiz_provider.dart';
 import '../providers/theme_provider.dart';
 import '../services/payment_service.dart';
 import 'privacy_policy_screen.dart';
+import 'tutorial_screen.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -245,6 +246,25 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       child: const Text('消去', style: TextStyle(color: Colors.red)),
                     ),
                   ],
+                ),
+              );
+            },
+          ),
+          const Divider(),
+          const Text(
+            'アプリについて',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+          ListTile(
+            leading: const Icon(Icons.help_outline, color: Colors.blue),
+            title: const Text('チュートリアルを見る'),
+            subtitle: const Text('アプリの使い方を確認する'),
+            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const TutorialScreen(fromSettings: true),
                 ),
               );
             },

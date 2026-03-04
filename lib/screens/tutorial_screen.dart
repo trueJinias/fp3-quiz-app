@@ -5,7 +5,8 @@ import '../services/notification_service.dart';
 import 'main_screen.dart';
 
 class TutorialScreen extends StatefulWidget {
-  const TutorialScreen({super.key});
+  final bool fromSettings;
+  const TutorialScreen({super.key, this.fromSettings = false});
 
   @override
   State<TutorialScreen> createState() => _TutorialScreenState();
@@ -15,18 +16,24 @@ class _TutorialScreenState extends State<TutorialScreen> {
   final introKey = GlobalKey<IntroductionScreenState>();
 
   Future<void> _onIntroEnd(context) async {
-    // 1. Request Notification Permission
-    await NotificationService().requestPermission();
+    // 1. Request Notification Permission (only on first launch)
+    if (!widget.fromSettings) {
+      await NotificationService().requestPermission();
+    }
 
     // 2. Save "seen tutorial" flag
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('isFirstLaunch', false);
 
-    // 3. Navigate to MainScreen
+    // 3. Navigate back or to MainScreen
     if (context.mounted) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const MainScreen()),
-      );
+      if (widget.fromSettings) {
+        Navigator.of(context).pop();
+      } else {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const MainScreen()),
+        );
+      }
     }
   }
 
@@ -57,7 +64,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
       allowImplicitScrolling: true,
       autoScrollDuration: null,
       infiniteAutoScroll: false,
-      safeAreaList: [true, true, true, true],
+      safeAreaList: [true, true, true, true, true],
       pages: [
         PageViewModel(
           title: "学習アプリへようこそ",
@@ -68,6 +75,52 @@ class _TutorialScreenState extends State<TutorialScreen> {
             bodyTextStyle: TextStyle(fontSize: 18.0),
           ),
         ),
+        // ── NEW: 間隔反復の仕組み ──────────────────────────────────────
+        PageViewModel(
+          title: "間隔反復で効率よく記憶",
+          image: const Icon(Icons.timeline, size: 56.0, color: Colors.teal),
+          bodyWidget: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                '正解するたびに復習間隔が自動的に伸びていきます',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 14.0, height: 1.5),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                height: 155,
+                child: CustomPaint(
+                  painter: _ReviewIntervalPainter(),
+                  child: const SizedBox.expand(),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  // ignore: deprecated_member_use
+                  color: Colors.teal.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                  // ignore: deprecated_member_use
+                  border: Border.all(color: Colors.teal.withOpacity(0.4)),
+                ),
+                child: const Text(
+                  '最適なタイミングで復習することで\n短い学習時間でも確実に長期記憶へ定着！',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 12.0, height: 1.5, color: Colors.teal),
+                ),
+              ),
+            ],
+          ),
+          decoration: const PageDecoration(
+            titleTextStyle: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
+            contentMargin: EdgeInsets.symmetric(horizontal: 16),
+            bodyPadding: EdgeInsets.zero,
+            imagePadding: EdgeInsets.only(top: 8, bottom: 4),
+          ),
+        ),
+        // ─────────────────────────────────────────────────────────────
         PageViewModel(
           title: "評価ボタンの使い方",
           image: const Icon(Icons.touch_app, size: 64.0, color: Colors.purple),
@@ -186,4 +239,118 @@ class _TutorialScreenState extends State<TutorialScreen> {
       ),
     );
   }
+}
+
+/// Draws a bar chart illustrating exponentially growing review intervals.
+class _ReviewIntervalPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    const intervals = [1, 3, 7, 14, 30];
+    const dayLabels = ['1日', '3日', '7日', '14日', '30日+'];
+    const reviewLabels = ['1回目', '2回目', '3回目', '4回目', '5回目'];
+    const n = 5;
+    const maxInterval = 30.0;
+
+    // Layout constants
+    final chartBottom = size.height - 22.0;
+    const topPadding = 22.0;
+
+    const barColors = [
+      Color(0xFF1976D2),
+      Color(0xFF0097A7),
+      Color(0xFF00897B),
+      Color(0xFF43A047),
+      Color(0xFF66BB6A),
+    ];
+
+    final barSpacing = size.width / n;
+    final barWidth = barSpacing * 0.52;
+
+    // ── Draw bars ────────────────────────────────────────────────────
+    for (int i = 0; i < n; i++) {
+      final barHeight = (intervals[i] / maxInterval) * (chartBottom - topPadding);
+      final centerX = barSpacing * i + barSpacing / 2;
+      final left = centerX - barWidth / 2;
+      final top = chartBottom - barHeight;
+
+      final paint = Paint()
+        ..color = barColors[i]
+        ..style = PaintingStyle.fill;
+
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromLTWH(left, top, barWidth, barHeight),
+          const Radius.circular(5),
+        ),
+        paint,
+      );
+
+      _drawCenteredText(
+        canvas,
+        dayLabels[i],
+        centerX,
+        top - 18,
+        TextStyle(color: barColors[i], fontSize: 11, fontWeight: FontWeight.bold),
+      );
+
+      _drawCenteredText(
+        canvas,
+        reviewLabels[i],
+        centerX,
+        chartBottom + 4,
+        const TextStyle(color: Color(0xFF757575), fontSize: 9),
+      );
+    }
+
+    // ── Baseline ─────────────────────────────────────────────────────
+    final linePaint = Paint()
+      ..color = const Color(0xFFBDBDBD)
+      ..strokeWidth = 1.0;
+    canvas.drawLine(
+      Offset(0, chartBottom),
+      Offset(size.width, chartBottom),
+      linePaint,
+    );
+
+    // ── Smooth exponential curve through bar tops ─────────────────────
+    final path = Path();
+    for (int i = 0; i < n; i++) {
+      final barHeight = (intervals[i] / maxInterval) * (chartBottom - topPadding);
+      final centerX = barSpacing * i + barSpacing / 2;
+      final topY = chartBottom - barHeight;
+
+      if (i == 0) {
+        path.moveTo(centerX, topY);
+      } else {
+        final prevBarHeight = (intervals[i - 1] / maxInterval) * (chartBottom - topPadding);
+        final prevCenterX = barSpacing * (i - 1) + barSpacing / 2;
+        final prevTopY = chartBottom - prevBarHeight;
+        path.cubicTo(
+          prevCenterX + barSpacing * 0.55,
+          prevTopY,
+          centerX - barSpacing * 0.4,
+          topY,
+          centerX,
+          topY,
+        );
+      }
+    }
+
+    final curvePaint = Paint()
+      ..color = const Color(0x9000BCD4)
+      ..strokeWidth = 2.2
+      ..style = PaintingStyle.stroke;
+    canvas.drawPath(path, curvePaint);
+  }
+
+  void _drawCenteredText(Canvas canvas, String text, double cx, double y, TextStyle style) {
+    final tp = TextPainter(
+      text: TextSpan(text: text, style: style),
+      textDirection: TextDirection.ltr,
+    )..layout(maxWidth: 64);
+    tp.paint(canvas, Offset(cx - tp.width / 2, y));
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

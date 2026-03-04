@@ -163,7 +163,7 @@ class QuizScreen extends ConsumerWidget {
                     if (quizState.isAnswered) ...[
                       const SizedBox(height: 24),
                       Text(
-                        '学習スケジュール評価',
+                        'この問題、次いつ復習する？',
                         style: TextStyle(color: Colors.grey[600], fontSize: 12),
                       ),
                       const SizedBox(height: 8),
