@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "223368078586",
+    "project_id": "fp3-exam-prep",
+    "storage_bucket": "fp3-exam-prep.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:223368078586:android:33b5795dbef99d26c71543",
+        "android_client_info": {
+          "package_name": "jp.jinias.fp3quiz"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCD1QgtJt5tDDEg_Xz0oKFf9k_zGp8GnSM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

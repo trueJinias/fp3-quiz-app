@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -13,6 +15,11 @@ import 'screens/tutorial_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize Firebase
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   
   // MobileAds and Notifications are only for Mobile (Android/iOS)
   // We check kIsWeb first to avoid dart:io usage on web
@@ -37,12 +44,51 @@ void main() async {
   );
 }
 
-class MyApp extends ConsumerWidget {
+class MyApp extends ConsumerStatefulWidget {
   final bool isFirstLaunch;
   const MyApp({super.key, required this.isFirstLaunch});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _rescheduleNotifications();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // アプリがフォアグラウンドに戻った時に通知を再スケジュール
+    // これにより端末再起動後などでも通知が復元される
+    if (state == AppLifecycleState.resumed) {
+      _rescheduleNotifications();
+    }
+  }
+
+  /// 通知を再スケジュール（端末再起動後の復元など）
+  Future<void> _rescheduleNotifications() async {
+    if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+      try {
+        final notificationService = NotificationService();
+        await notificationService.scheduleDailyReminder();
+      } catch (e) {
+        debugPrint('Failed to reschedule notifications: $e');
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final themeMode = ref.watch(themeProvider);
     
     return MaterialApp(
@@ -83,7 +129,7 @@ class MyApp extends ConsumerWidget {
           child: child!,
         );
       },
-      home: isFirstLaunch ? const TutorialScreen() : const MainScreen(),
+      home: widget.isFirstLaunch ? const TutorialScreen() : const MainScreen(),
       debugShowCheckedModeBanner: false,
     );
   }

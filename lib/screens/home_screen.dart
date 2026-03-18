@@ -79,6 +79,14 @@ class HomeScreen extends ConsumerWidget {
               ),
             ),
           ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+            child: Text(
+              '本アプリの問題は、日本FP協会が公開している過去問題を使用しています。',
+              style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+              textAlign: TextAlign.center,
+            ),
+          ),
           const AdBanner(),
         ],
       ),

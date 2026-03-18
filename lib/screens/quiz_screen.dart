@@ -58,7 +58,16 @@ class QuizScreen extends ConsumerWidget {
 
     final question = quizState.currentQuestion;
 
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) {
+        if (didPop) return;
+        quizNotifier.handleBackPress().then((_) {
+          ref.invalidate(dueQuestionCountProvider);
+          if (context.mounted) Navigator.pop(context);
+        });
+      },
+      child: Scaffold(
         appBar: PreferredSize(
           preferredSize: const Size.fromHeight(kToolbarHeight + 50.0),
           child: SafeArea(
@@ -175,12 +184,12 @@ class QuizScreen extends ConsumerWidget {
                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                children: [
                                  if (!isCorrect) ...[
-                                   _buildRateButton(context, quizNotifier, 1, 'もう一度', Colors.red, quizState.nextIntervalLabels![1]!),
-                                   _buildRateButton(context, quizNotifier, 2, '難しい', Colors.orange, quizState.nextIntervalLabels![2]!),
+                                   _buildRateButton(context, ref, quizNotifier, 1, 'もう一度', Colors.red, quizState.nextIntervalLabels![1]!),
+                                   _buildRateButton(context, ref, quizNotifier, 2, '難しい', Colors.orange, quizState.nextIntervalLabels![2]!),
                                  ],
                                  if (isCorrect) ...[
-                                   _buildRateButton(context, quizNotifier, 3, '正解', Colors.blue, quizState.nextIntervalLabels![3]!),
-                                   _buildRateButton(context, quizNotifier, 4, '簡単', Colors.green, quizState.nextIntervalLabels![4]!),
+                                   _buildRateButton(context, ref, quizNotifier, 3, '正解', Colors.blue, quizState.nextIntervalLabels![3]!),
+                                   _buildRateButton(context, ref, quizNotifier, 4, '簡単', Colors.green, quizState.nextIntervalLabels![4]!),
                                  ],
                                ],
                              );
@@ -190,8 +199,19 @@ class QuizScreen extends ConsumerWidget {
                          const Center(child: CircularProgressIndicator()),
                       
                       const SizedBox(height: 12),
+                      Center(
+                        child: Text(
+                          '画面最下部に解説',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
                       AdBanner(size: AdSize.mediumRectangle),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 8),
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
@@ -234,12 +254,17 @@ class QuizScreen extends ConsumerWidget {
             ),
           ],
         ),
+      ),
     );
   }
 
-  Widget _buildRateButton(BuildContext context, QuizNotifier notifier, int rating, String label, Color color, String timeLabel) {
+  Widget _buildRateButton(BuildContext context, WidgetRef ref, QuizNotifier notifier, int rating, String label, Color color, String timeLabel) {
     return InkWell(
-      onTap: () => notifier.rateQuestion(rating),
+      onTap: () {
+        notifier.rateQuestion(rating).then((_) {
+          ref.invalidate(dueQuestionCountProvider);
+        });
+      },
       child: Column(
         children: [
           Text(
