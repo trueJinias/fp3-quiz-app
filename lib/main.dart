@@ -58,7 +58,9 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (!kIsWeb && Platform.isAndroid) {
+      // 既存ユーザー（チュートリアル完了済み）のみ許可ダイアログを表示
+      // 新規ユーザーはチュートリアル終了時に tutorial_screen.dart 内で要求する
+      if (!kIsWeb && Platform.isAndroid && !widget.isFirstLaunch) {
         await NotificationService().requestPermission();
       }
     });
