@@ -53,3 +53,5 @@ temp-aab/
 *.keystore
 key.properties
 android/key.properties
+lib/firebase_options.dart
+android/app/google-services.json
