@@ -57,6 +57,11 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!kIsWeb && Platform.isAndroid) {
+        await NotificationService().requestPermission();
+      }
+    });
     _rescheduleNotifications();
   }
 
@@ -90,7 +95,7 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     final themeMode = ref.watch(themeProvider);
-    
+
     return MaterialApp(
       title: 'FP3級 一問一答', // Generic Title
       theme: ThemeData(
