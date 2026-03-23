@@ -206,12 +206,11 @@ class ReviewService {
     
     data.forEach((k, v) {
       final nextReview = v['nextReview'] as int;
-      if (nextReview >= todayStart) {
-        final diff = nextReview - todayStart;
-        final dayIndex = (diff / msPerDay).floor();
-        if (dayIndex >= 0 && dayIndex < days) {
-          counts[dayIndex]++;
-        }
+      final diff = nextReview - todayStart;
+      int dayIndex = (diff / msPerDay).floor();
+      if (dayIndex < 0) dayIndex = 0; // 期限切れ → 今日のバケットへ
+      if (dayIndex < days) {
+        counts[dayIndex]++;
       }
     });
     

@@ -57,7 +57,7 @@ class StatsScreen extends ConsumerWidget {
                               color: Colors.blue.defaultShade(index * 100 + 200),
                             ),
                             const SizedBox(height: 5),
-                            Text('+${index + 1}日'),
+                            Text(index == 0 ? '今日' : '+${index}日'),
                           ],
                         );
                       }),

@@ -73,30 +73,22 @@ class NotificationService {
           InitializationSettings(android: initializationSettingsAndroid);
 
       await _safeInitialize();
-
-      // 起動時に古い通知キャッシュを安全にクリア（フォーマット不一致による破損対策）
-      try {
-        // まず既存の通知をキャンセル
-        await flutterLocalNotificationsPlugin.cancelAll();
-      } catch (e) {
-        print('NotificationService: キャッシュ破損検出、クリアします: $e');
-        await _clearNotificationCache();
-        // 再初期化
-        await _safeInitialize();
-      }
-      
-      // 確実にキャッシュをクリア
-      await _clearNotificationCache();
+      // cancelAll() は削除: 同一ID(0)でのzonedScheduleが上書きするため不要。
+      // また cancelAll後にscheduleDailyReminderが呼ばれる前にアプリが割り込むと
+      // 通知が消えたままになるレースコンディションを防ぐ。
     } catch (e) {
       print('NotificationService init error: $e');
     }
   }
 
-  Future<void> requestPermission() async {
-    await flutterLocalNotificationsPlugin
+  /// 通知権限をリクエストし、権限が有効かどうかを返す
+  Future<bool> requestPermission() async {
+    final androidPlugin = flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.requestNotificationsPermission();
+            AndroidFlutterLocalNotificationsPlugin>();
+    if (androidPlugin == null) return true;
+    await androidPlugin.requestNotificationsPermission();
+    return await androidPlugin.areNotificationsEnabled() ?? false;
   }
 
   /// 復習待ちの問題数に基づいた通知メッセージを生成
@@ -135,15 +127,14 @@ class NotificationService {
             channelDescription: '復習待ちの問題がある場合に21時に通知します',
             importance: Importance.max,
             priority: Priority.high,
+            enableVibration: true,
+            playSound: true,
           ),
         ),
-        // inexact: 正確な時刻ではなく、バッテリー最適化を考慮した時刻に通知
         androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
-        // matchDateTimeComponents は削除: inexactAllowWhileIdle との組み合わせでは
-        // Android 12+ で自動再スケジュールが信頼性低く機能しないため、
-        // アプリ起動時に main.dart のライフサイクルオブザーバーが再スケジュールする
+        matchDateTimeComponents: DateTimeComponents.time,
       );
 
       print('NotificationService: 通知をスケジュールしました - ${scheduledDate.toString()} - 復習待ち: $dueCount問');
@@ -182,12 +173,14 @@ class NotificationService {
             channelDescription: '復習待ちの問題がある場合に21時に通知します',
             importance: Importance.max,
             priority: Priority.high,
+            enableVibration: true,
+            playSound: true,
           ),
         ),
-        // inexact: 正確な時刻ではなく、バッテリー最適化を考慮した時刻に通知
         androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
+        matchDateTimeComponents: DateTimeComponents.time,
       );
 
       print('NotificationService: 通知を明日21時にリスケジュール - 復習待ち: $dueCount問');

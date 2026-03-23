@@ -15,14 +15,10 @@ import 'screens/tutorial_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Initialize Firebase
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  
-  // MobileAds and Notifications are only for Mobile (Android/iOS)
-  // We check kIsWeb first to avoid dart:io usage on web
   if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
     try {
       MobileAds.instance.initialize();
@@ -58,10 +54,11 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      // 既存ユーザー（チュートリアル完了済み）のみ許可ダイアログを表示
-      // 新規ユーザーはチュートリアル終了時に tutorial_screen.dart 内で要求する
       if (!kIsWeb && Platform.isAndroid && !widget.isFirstLaunch) {
-        await NotificationService().requestPermission();
+        final granted = await NotificationService().requestPermission();
+        if (!granted && mounted) {
+          _showNotificationDisabledDialog(context);
+        }
       }
     });
     _rescheduleNotifications();
@@ -82,6 +79,25 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
     }
   }
 
+  void _showNotificationDisabledDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('通知が無効です'),
+        content: const Text(
+          '学習リマインダーを受け取るには、通知を許可してください。\n\n'
+          '設定 → アプリ → FP3級 過去問精釈 → 通知 → 許可',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('閉じる'),
+          ),
+        ],
+      ),
+    );
+  }
+
   /// 通知を再スケジュール（端末再起動後の復元など）
   Future<void> _rescheduleNotifications() async {
     if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
@@ -99,7 +115,7 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
     final themeMode = ref.watch(themeProvider);
 
     return MaterialApp(
-      title: 'FP3級 一問一答', // Generic Title
+      title: 'FP3級 過去問精釈', // Generic Title
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.green, brightness: Brightness.light),
         useMaterial3: true,

@@ -8,7 +8,7 @@
     <uses-permission android:name="com.google.android.gms.permission.AD_ID"/>
 
     <application
-        android:label="FP3級一問一答"
+        android:label="FP3級 過去問精釈"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

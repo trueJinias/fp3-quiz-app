@@ -5,6 +5,7 @@ class Question {
   final int correctIndex;
   final String explanation;
   final String? imagePath;
+  final String? category;
 
   Question({
     required this.id,
@@ -13,6 +14,7 @@ class Question {
     required this.correctIndex,
     required this.explanation,
     this.imagePath,
+    this.category,
   });
 
   factory Question.fromJson(Map<String, dynamic> json) {
@@ -23,6 +25,7 @@ class Question {
       correctIndex: json['correctIndex'] as int,
       explanation: json['explanation'] as String,
       imagePath: json['imagePath'] as String?,
+      category: json['category'] as String?,
     );
   }
 }

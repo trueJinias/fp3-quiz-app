@@ -175,6 +175,11 @@ class QuizScreen extends ConsumerWidget {
                         'この問題、次いつ復習する？',
                         style: TextStyle(color: Colors.grey[600], fontSize: 12),
                       ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '復習間隔を選ぶと次の問題へ進みます',
+                        style: TextStyle(color: Colors.grey[400], fontSize: 10),
+                      ),
                       const SizedBox(height: 8),
                       if (quizState.nextIntervalLabels != null)
                          Builder(
@@ -184,12 +189,12 @@ class QuizScreen extends ConsumerWidget {
                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                children: [
                                  if (!isCorrect) ...[
-                                   _buildRateButton(context, ref, quizNotifier, 1, 'もう一度', Colors.red, quizState.nextIntervalLabels![1]!),
-                                   _buildRateButton(context, ref, quizNotifier, 2, '難しい', Colors.orange, quizState.nextIntervalLabels![2]!),
+                                   _buildRateButton(context, ref, quizNotifier, 1, Colors.red, quizState.nextIntervalLabels![1]!),
+                                   _buildRateButton(context, ref, quizNotifier, 2, Colors.orange, quizState.nextIntervalLabels![2]!),
                                  ],
                                  if (isCorrect) ...[
-                                   _buildRateButton(context, ref, quizNotifier, 3, '正解', Colors.blue, quizState.nextIntervalLabels![3]!),
-                                   _buildRateButton(context, ref, quizNotifier, 4, '簡単', Colors.green, quizState.nextIntervalLabels![4]!),
+                                   _buildRateButton(context, ref, quizNotifier, 3, Colors.blue, quizState.nextIntervalLabels![3]!),
+                                   _buildRateButton(context, ref, quizNotifier, 4, Colors.green, quizState.nextIntervalLabels![4]!),
                                  ],
                                ],
                              );
@@ -258,35 +263,27 @@ class QuizScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildRateButton(BuildContext context, WidgetRef ref, QuizNotifier notifier, int rating, String label, Color color, String timeLabel) {
+  Widget _buildRateButton(BuildContext context, WidgetRef ref, QuizNotifier notifier, int rating, Color color, String timeLabel) {
     return InkWell(
       onTap: () {
         notifier.rateQuestion(rating).then((_) {
           ref.invalidate(dueQuestionCountProvider);
         });
       },
-      child: Column(
-        children: [
-          Text(
-            timeLabel,
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 4),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: Theme.of(context).brightness == Brightness.dark 
-                  ? color.withOpacity(0.15) 
-                  : color.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: color),
-            ),
-            child: Text(
-              label,
-              style: TextStyle(color: color, fontWeight: FontWeight.bold),
-            ),
-          ),
-        ],
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+        decoration: BoxDecoration(
+          // ignore: deprecated_member_use
+          color: Theme.of(context).brightness == Brightness.dark
+              ? color.withOpacity(0.15)
+              : color.withOpacity(0.2),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: color),
+        ),
+        child: Text(
+          timeLabel,
+          style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 15),
+        ),
       ),
     );
   }

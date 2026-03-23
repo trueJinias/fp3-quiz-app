@@ -7,7 +7,7 @@ import '../services/review_service.dart';
 import '../services/settings_service.dart';
 import '../services/notification_service.dart';
 
-enum QuizMode { normal, review }
+enum QuizMode { normal, review, category }
 
 class QuizState {
   final List<Question> questions;
@@ -194,6 +194,47 @@ class QuizNotifier extends StateNotifier<QuizState> {
       }
     } catch (e) {
       if (mounted) state = state.copyWith(isLoading: false, errorMessage: '復習モードエラー: $e');
+    }
+  }
+
+  Future<void> startCategoryQuiz(String category) async {
+    try {
+      state = state.copyWith(isLoading: true, errorMessage: null);
+      await _ensureLoaded();
+      if (!mounted) return;
+
+      if (_allQuestions.isEmpty) {
+        if (mounted) state = state.copyWith(isLoading: false, errorMessage: '問題データが空です。');
+        return;
+      }
+
+      final categoryQuestions = _allQuestions.where((q) => q.category == category).toList();
+
+      if (categoryQuestions.isEmpty) {
+        if (mounted) {
+          state = QuizState(
+            questions: [],
+            isLoading: false,
+            mode: QuizMode.category,
+            errorMessage: '$category の問題が見つかりません。',
+          );
+        }
+        return;
+      }
+
+      final shuffled = listShim(categoryQuestions)..shuffle();
+      final quizQuestions = shuffled.take(10).toList();
+
+      if (mounted) {
+        state = QuizState(
+          questions: quizQuestions,
+          isLoading: false,
+          mode: QuizMode.category,
+          errorMessage: null,
+        );
+      }
+    } catch (e) {
+      if (mounted) state = state.copyWith(isLoading: false, errorMessage: 'エラーが発生しました: $e');
     }
   }
 

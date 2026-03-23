@@ -18,7 +18,26 @@ class _TutorialScreenState extends State<TutorialScreen> {
   Future<void> _onIntroEnd(context) async {
     // 1. Request Notification Permission (only on first launch)
     if (!widget.fromSettings) {
-      await NotificationService().requestPermission();
+      final granted = await NotificationService().requestPermission();
+      if (!granted && context.mounted) {
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('通知が無効です'),
+            content: const Text(
+              '学習リマインダーを受け取るには、通知を許可してください。\n\n'
+              '設定 → アプリ → FP3級 過去問精釈 → 通知 → 許可',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: const Text('閉じる'),
+              ),
+            ],
+          ),
+        );
+        return;
+      }
     }
 
     // 2. Save "seen tutorial" flag
@@ -37,22 +56,16 @@ class _TutorialScreenState extends State<TutorialScreen> {
     }
   }
 
-  Widget _buildDemoButton(String timeLabel, String label, Color color) {
-    return Column(
-      children: [
-        Text(timeLabel, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 4),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          decoration: BoxDecoration(
-            // ignore: deprecated_member_use
-            color: color.withOpacity(0.15),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: color),
-          ),
-          child: Text(label, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 14)),
-        ),
-      ],
+  Widget _buildDemoButton(String timeLabel, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+      decoration: BoxDecoration(
+        // ignore: deprecated_member_use
+        color: color.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color),
+      ),
+      child: Text(timeLabel, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 15)),
     );
   }
 
@@ -128,7 +141,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               const Text(
-                "回答後に評価ボタンが表示されます。\nボタン上の数字は「次回復習までの日数」です。\n自分の理解度に合ったボタンを押しましょう。",
+                "回答後、次の復習タイミングを選ぶボタンが表示されます。\n「次いつ復習する？」という問いに答える感覚でボタンをタップすると\n次の問題へ進みます。",
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 14.0, height: 1.6),
               ),
@@ -148,9 +161,9 @@ class _TutorialScreenState extends State<TutorialScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        _buildDemoButton('3日後', '正解', Colors.blue),
+                        _buildDemoButton('3日後', Colors.blue),
                         const SizedBox(width: 20),
-                        _buildDemoButton('7日後', '簡単', Colors.green),
+                        _buildDemoButton('7日後', Colors.green),
                       ],
                     ),
                   ],
@@ -172,14 +185,14 @@ class _TutorialScreenState extends State<TutorialScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        _buildDemoButton('このセッション中', 'もう一度', Colors.red),
+                        _buildDemoButton('今日', Colors.red),
                         const SizedBox(width: 20),
-                        _buildDemoButton('1日後', '難しい', Colors.orange),
+                        _buildDemoButton('明日', Colors.orange),
                       ],
                     ),
                     const SizedBox(height: 6),
                     const Text(
-                      '「もう一度」はこのセッション中に再度出題されます',
+                      '「今日」ボタンはこのセッション中に再度出題されます',
                       textAlign: TextAlign.center,
                       style: TextStyle(fontSize: 11, color: Colors.red),
                     ),
@@ -206,12 +219,57 @@ class _TutorialScreenState extends State<TutorialScreen> {
         ),
         PageViewModel(
           title: "学習リマインダー",
-          body: "「通知」をオンにすると、\n毎日のノルマがまだ終わっていない時だけ\n夜9時にお知らせします。\n\nサボり防止に役立ちます！",
-          image: const Icon(Icons.notifications_active, size: 100.0, color: Colors.orange),
+          image: const Icon(Icons.notifications_active, size: 80.0, color: Colors.orange),
+          bodyWidget: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                '「通知」をオンにすると、\n毎日のノルマがまだ終わっていない時だけ\n夜9時にお知らせします。\n\nサボり防止に役立ちます！',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 15.0, height: 1.6),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                decoration: BoxDecoration(
+                  // ignore: deprecated_member_use
+                  color: Colors.amber.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(12),
+                  // ignore: deprecated_member_use
+                  border: Border.all(color: Colors.amber.withOpacity(0.6)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Row(
+                      children: [
+                        Icon(Icons.battery_alert, color: Colors.amber, size: 18),
+                        SizedBox(width: 6),
+                        Text(
+                          'バッテリー最適化に注意',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.amber),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'このアプリのバッテリー最適化がオンになっていると、通知が届かないことがあります。\n\n'
+                      '通知を確実に受け取るには：\n'
+                      '設定 → アプリ → FP3級 過去問精釈 → バッテリー →「制限なし」\n\n'
+                      'Samsung端末の場合：\n'
+                      '設定 → バッテリー → バックグラウンドの使用を制限 → FP3級 過去問精釈 → オフ',
+                      style: TextStyle(fontSize: 12.0, height: 1.5),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
           decoration: const PageDecoration(
-            titleTextStyle: TextStyle(fontSize: 28.0, fontWeight: FontWeight.bold),
-            bodyTextStyle: TextStyle(fontSize: 16.0),
-            imagePadding: EdgeInsets.zero,
+            titleTextStyle: TextStyle(fontSize: 26.0, fontWeight: FontWeight.bold),
+            contentMargin: EdgeInsets.symmetric(horizontal: 16),
+            bodyPadding: EdgeInsets.zero,
+            imagePadding: EdgeInsets.only(top: 8, bottom: 8),
           ),
         ),
       ],
