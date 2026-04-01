@@ -68,25 +68,15 @@ class QuizScreen extends ConsumerWidget {
         });
       },
       child: Scaffold(
-        appBar: PreferredSize(
-          preferredSize: const Size.fromHeight(kToolbarHeight + 50.0),
-          child: SafeArea(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const AdBanner(),
-                AppBar(
-                  title: Text('問題 ${quizState.currentIndex + 1} / ${quizState.questions.length}'),
-                  primary: false,
-                ),
-              ],
-            ),
-          ),
+        appBar: AppBar(
+          title: Text('問題 ${quizState.currentIndex + 1} / ${quizState.questions.length}'),
         ),
         body: Column(
           children: [
+            const AdBanner(),
             Expanded(
               child: SingleChildScrollView(
+                key: ValueKey(quizState.currentIndex),
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,

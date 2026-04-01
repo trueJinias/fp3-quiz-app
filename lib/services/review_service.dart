@@ -31,6 +31,22 @@ class ReviewService {
     await prefs.setString(_keyDailyStats, json.encode(stats));
   }
   
+  Future<void> _incrementDailyReviewCount() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String nowKey = _getTodayKey();
+
+    String? statsString = prefs.getString(_keyDailyStats);
+    Map<String, dynamic> stats = statsString != null ? json.decode(statsString) : {};
+
+    Map<String, dynamic> todayStats = stats[nowKey] != null
+        ? Map<String, dynamic>.from(stats[nowKey])
+        : {'new': 0, 'review': 0};
+    todayStats['review'] = (todayStats['review'] as int? ?? 0) + 1;
+
+    stats[nowKey] = todayStats;
+    await prefs.setString(_keyDailyStats, json.encode(stats));
+  }
+
   Future<int> getNewCardsCountToday() async {
     final prefs = await SharedPreferences.getInstance();
     final String nowKey = _getTodayKey();
@@ -42,6 +58,29 @@ class ReviewService {
     if (stats[nowKey] == null) return 0;
     
     return stats[nowKey]['new'] ?? 0;
+  }
+
+  Future<int> getStreak() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? statsString = prefs.getString(_keyDailyStats);
+    if (statsString == null) return 0;
+
+    Map<String, dynamic> stats = json.decode(statsString);
+
+    int streak = 0;
+    DateTime current = DateTime.now();
+
+    while (true) {
+      final key = "${current.year}-${current.month}-${current.day}";
+      final dayStats = stats[key];
+      if (dayStats == null) break;
+      final int activity = (dayStats['new'] as int? ?? 0) + (dayStats['review'] as int? ?? 0);
+      if (activity == 0) break;
+      streak++;
+      current = current.subtract(const Duration(days: 1));
+    }
+
+    return streak;
   }
 
   String _getTodayKey() {
@@ -136,6 +175,8 @@ class ReviewService {
     
     if (isNew) {
       await _incrementDailyNewCount();
+    } else {
+      await _incrementDailyReviewCount();
     }
     
     final calculation = await calculateNextReview(questionId, rating);
@@ -194,6 +235,32 @@ class ReviewService {
           'total': totalQuestions,
           'clearRate': clearRate,
       };
+  }
+
+  Future<Map<String, Map<String, dynamic>>> getCategoryStats(Map<int, String> questionCategories) async {
+    final data = await _loadData();
+
+    final Map<String, Map<String, dynamic>> categoryStats = {};
+
+    questionCategories.forEach((id, category) {
+      categoryStats.putIfAbsent(category, () => {'total': 0, 'learned': 0, 'correct': 0});
+      categoryStats[category]!['total'] = (categoryStats[category]!['total'] as int) + 1;
+    });
+
+    data.forEach((idStr, reviewData) {
+      final int? id = int.tryParse(idStr);
+      if (id == null) return;
+      final String? category = questionCategories[id];
+      if (category == null) return;
+
+      categoryStats.putIfAbsent(category, () => {'total': 0, 'learned': 0, 'correct': 0});
+      categoryStats[category]!['learned'] = (categoryStats[category]!['learned'] as int) + 1;
+      if ((reviewData['interval'] as int? ?? 0) > 0) {
+        categoryStats[category]!['correct'] = (categoryStats[category]!['correct'] as int) + 1;
+      }
+    });
+
+    return categoryStats;
   }
 
   Future<List<int>> getFutureReviews(int days) async {

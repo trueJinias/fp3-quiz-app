@@ -353,3 +353,21 @@ final statsProvider = FutureProvider.autoDispose<Map<String, dynamic>>((ref) asy
 final futureReviewsProvider = FutureProvider.autoDispose<List<int>>((ref) async {
   return ReviewService().getFutureReviews(7);
 });
+
+final streakProvider = FutureProvider.autoDispose<int>((ref) async {
+  return ReviewService().getStreak();
+});
+
+final categoryStatsProvider = FutureProvider.autoDispose<Map<String, Map<String, dynamic>>>((ref) async {
+  final String jsonString = await rootBundle.loadString('assets/questions.json');
+  final List<dynamic> jsonList = json.decode(jsonString) as List<dynamic>;
+  final Map<int, String> questionCategories = {};
+  for (final j in jsonList) {
+    final dynamic rawId = j['id'];
+    final String? category = j['category'] as String?;
+    if (rawId != null && category != null) {
+      questionCategories[rawId is int ? rawId : int.parse(rawId.toString())] = category;
+    }
+  }
+  return ReviewService().getCategoryStats(questionCategories);
+});

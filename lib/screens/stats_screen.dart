@@ -9,6 +9,7 @@ class StatsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final statsAsync = ref.watch(statsProvider);
     final futureAsync = ref.watch(futureReviewsProvider);
+    final categoryStatsAsync = ref.watch(categoryStatsProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -63,6 +64,16 @@ class StatsScreen extends ConsumerWidget {
                       }),
                     ),
                   ),
+                  const SizedBox(height: 30),
+                  const Text('カテゴリ別成績', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 10),
+                  categoryStatsAsync.when(
+                    data: (categoryStats) => Column(
+                      children: categoryStats.entries.map((e) => _buildCategoryCard(context, e.key, e.value)).toList(),
+                    ),
+                    loading: () => const Center(child: CircularProgressIndicator()),
+                    error: (e, _) => Text('エラー: $e'),
+                  ),
                 ],
               );
             },
@@ -72,6 +83,62 @@ class StatsScreen extends ConsumerWidget {
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, st) => Center(child: Text('Error: $e')),
+      ),
+    );
+  }
+
+  Widget _buildCategoryCard(BuildContext context, String category, Map<String, dynamic> stats) {
+    final int total = stats['total'] as int? ?? 0;
+    final int learned = stats['learned'] as int? ?? 0;
+    final int correct = stats['correct'] as int? ?? 0;
+    final double clearRate = total > 0 ? (correct / total * 100) : 0.0;
+    final double correctRate = learned > 0 ? (correct / learned * 100) : 0.0;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Card(
+      elevation: 2,
+      color: isDark ? Colors.grey[800] : Colors.white,
+      margin: const EdgeInsets.only(bottom: 10),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              category,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    children: [
+                      Text('クリア率', style: TextStyle(fontSize: 12, color: isDark ? Colors.grey[400] : Colors.grey[600])),
+                      Text(
+                        '${clearRate.toStringAsFixed(1)}%',
+                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.purple),
+                      ),
+                      Text('$correct / $total', style: TextStyle(fontSize: 11, color: Colors.grey[500])),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: Column(
+                    children: [
+                      Text('正答率', style: TextStyle(fontSize: 12, color: isDark ? Colors.grey[400] : Colors.grey[600])),
+                      Text(
+                        '${correctRate.toStringAsFixed(1)}%',
+                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.green),
+                      ),
+                      Text('$correct / $learned', style: TextStyle(fontSize: 11, color: Colors.grey[500])),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

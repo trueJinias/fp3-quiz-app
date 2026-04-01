@@ -20,7 +20,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
     if (!widget.fromSettings) {
       final granted = await NotificationService().requestPermission();
       if (!granted && context.mounted) {
-        showDialog(
+        await showDialog(
           context: context,
           builder: (ctx) => AlertDialog(
             title: const Text('通知が無効です'),
@@ -36,7 +36,6 @@ class _TutorialScreenState extends State<TutorialScreen> {
             ],
           ),
         );
-        return;
       }
     }
 
@@ -86,13 +85,14 @@ class _TutorialScreenState extends State<TutorialScreen> {
           decoration: const PageDecoration(
             titleTextStyle: TextStyle(fontSize: 28.0, fontWeight: FontWeight.bold),
             bodyTextStyle: TextStyle(fontSize: 18.0),
+            imagePadding: EdgeInsets.only(top: 16, bottom: 8),
           ),
         ),
         // ── NEW: 間隔反復の仕組み ──────────────────────────────────────
         PageViewModel(
           title: "間隔反復で効率よく記憶",
           image: const Icon(Icons.timeline, size: 56.0, color: Colors.teal),
-          bodyWidget: Column(
+          bodyWidget: SingleChildScrollView(child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               const Text(
@@ -125,19 +125,21 @@ class _TutorialScreenState extends State<TutorialScreen> {
                 ),
               ),
             ],
-          ),
+          )),
           decoration: const PageDecoration(
             titleTextStyle: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
             contentMargin: EdgeInsets.symmetric(horizontal: 16),
             bodyPadding: EdgeInsets.zero,
             imagePadding: EdgeInsets.only(top: 8, bottom: 4),
+            imageFlex: 1,
+            bodyFlex: 4,
           ),
         ),
         // ─────────────────────────────────────────────────────────────
         PageViewModel(
           title: "評価ボタンの使い方",
           image: const Icon(Icons.touch_app, size: 64.0, color: Colors.purple),
-          bodyWidget: Column(
+          bodyWidget: SingleChildScrollView(child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               const Text(
@@ -200,12 +202,14 @@ class _TutorialScreenState extends State<TutorialScreen> {
                 ),
               ),
             ],
-          ),
+          )),
           decoration: const PageDecoration(
             titleTextStyle: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
             contentMargin: EdgeInsets.symmetric(horizontal: 16),
             bodyPadding: EdgeInsets.zero,
             imagePadding: EdgeInsets.only(top: 8, bottom: 4),
+            imageFlex: 1,
+            bodyFlex: 4,
           ),
         ),
         PageViewModel(
@@ -215,12 +219,13 @@ class _TutorialScreenState extends State<TutorialScreen> {
           decoration: const PageDecoration(
             titleTextStyle: TextStyle(fontSize: 28.0, fontWeight: FontWeight.bold),
             bodyTextStyle: TextStyle(fontSize: 18.0),
+            imagePadding: EdgeInsets.only(top: 16, bottom: 8),
           ),
         ),
         PageViewModel(
           title: "学習リマインダー",
           image: const Icon(Icons.notifications_active, size: 80.0, color: Colors.orange),
-          bodyWidget: Column(
+          bodyWidget: SingleChildScrollView(child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               const Text(
@@ -264,12 +269,14 @@ class _TutorialScreenState extends State<TutorialScreen> {
                 ),
               ),
             ],
-          ),
+          )),
           decoration: const PageDecoration(
             titleTextStyle: TextStyle(fontSize: 26.0, fontWeight: FontWeight.bold),
             contentMargin: EdgeInsets.symmetric(horizontal: 16),
             bodyPadding: EdgeInsets.zero,
             imagePadding: EdgeInsets.only(top: 8, bottom: 8),
+            imageFlex: 1,
+            bodyFlex: 4,
           ),
         ),
       ],
